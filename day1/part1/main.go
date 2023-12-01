@@ -56,7 +56,7 @@ func findNumber(s string, mode int) int {
 }
 
 func main() {
-	filePath := "input.txt"
+	filePath := "../input.txt"
 	lines, err := readLinesFromFile(filePath)
 
 	if err != nil {
