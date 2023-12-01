@@ -32,7 +32,6 @@ func readLinesFromFile(filePath string) ([]string, error) {
 
 func findNumber(s string, mode int) int {
 
-	// Ler linha do início
 	if mode == 1 {
 		for i := 0; i <= len(s)-1; i++ {
 			char := rune(s[i])
@@ -42,7 +41,6 @@ func findNumber(s string, mode int) int {
 		}
 	}
 
-	// Ler linha desde o início
 	if mode == 2 {
 		for i := len(s) - 1; i >= 0; i-- {
 			char := rune(s[i])
