@@ -61,7 +61,6 @@ func findNumber(s string, mode int, m map[string]int) int {
 		}
 	}
 
-	// Ler linha desde o início
 	if mode == 2 {
 		newString := ""
 
