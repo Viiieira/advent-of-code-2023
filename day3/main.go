@@ -10,15 +10,16 @@ import (
 	"unicode"
 )
 
-const FILEPATH = "input.txt"
+const FILEPATH = "example.txt"
 
 type Coordinates struct {
 	Entries []struct {
-		StartX int
-		StartY int
-		EndX   int
-		EndY   int
+		StartX, StartY, EndX, EndY int
 	}
+}
+
+type GearsCordinates struct {
+	X, Y int
 }
 
 func readLinesFromFile(filePath string) ([]string, error) {
@@ -159,8 +160,71 @@ func trackTime(name string) func() {
 	}
 }
 
+// ---- Part 2 Functions ----
+func displayGearsPositions(gearsCoordinates []GearsCordinates) {
+	for _, gear := range gearsCoordinates {
+		fmt.Printf("A gear was found at [%d][%d]!\n", gear.X, gear.Y)
+	}
+}
+
+func getAllGearsPositions(lines []string) (gearsPositions []GearsCordinates) {
+	for i, line := range lines {
+		for j, char := range line {
+			if string(char) == "*" {
+				gearsPositions = append(gearsPositions, GearsCordinates{i, j})
+			}
+		}
+	}
+
+	return gearsPositions
+}
+
+func getNumbersAdjacentToGears(lines []string,
+	gearsPositions []GearsCordinates, maxRows int, maxCols int) (part2Numbers []int) {
+
+	positionsToCheck := []GearsCordinates{}
+	for i, line := range lines {
+		for j, char := range line {
+			// Gear foi detetada
+			if string(char) == "*" {
+				// Guardar em array todas as posições adjacentes ao * encontrado
+				positionsToCheck = []GearsCordinates{
+					{i, j - 1},     // Esquerda
+					{i, j + 1},     // Direita
+					{i + 1, j},     // Baixo
+					{i - 1, j},     // Cima
+					{i + 1, j - 1}, // Baixo + Esquerda
+					{i + 1, j + 1}, // Baixo + Direita
+					{i - 1, j - 1}, // Cima + Esquerda
+					{i - 1, j + 1}, // Cima + Direita
+				}
+
+				// Ver se as posições do array correspondem a um dígito
+				aux := 0
+				for _, pos := range positionsToCheck {
+					// Ver se a posição está dentro das dimensões da matriz
+					if pos.X >= 0 && pos.Y >= 0 && pos.X <= maxRows-1 && pos.Y <= maxCols-1 {
+						// É um número?
+						if unicode.IsDigit(int32(lines[pos.X][pos.Y])) {
+							aux++
+							if aux == 1 {
+								fmt.Print("| ")
+							}
+							key, _ := strconv.Atoi(string(lines[pos.X][pos.Y]))
+							fmt.Printf("%d --> (%d,%d) \n",
+								key, pos.X, pos.Y)
+						}
+					}
+				}
+				fmt.Println()
+			}
+		}
+	}
+	return part2Numbers
+}
+
 func main() {
-	defer trackTime("Part 1")()
+	defer trackTime("Day 3")()
 
 	lines, err := readLinesFromFile(FILEPATH)
 
@@ -171,8 +235,18 @@ func main() {
 	numRows, numCols := getMatrixSize(lines)
 
 	nums := findNumbers(lines)
-	validNumbers := returnValidNumbers(nums, lines, numRows, numCols)
-	part1_result := sumAllValidNumbers(validNumbers)
+	part1ValidNumbers := returnValidNumbers(nums, lines, numRows, numCols)
+	part1_result := sumAllValidNumbers(part1ValidNumbers)
+
+	// Encontrar as posições das gears
+	gearsPositions := getAllGearsPositions(lines)
+	// displayGearsPositions(gearsPositions)
+	// Encontrar números adjacentes às gears
+	part2Numbers := getNumbersAdjacentToGears(lines, gearsPositions, numRows, numCols)
+	part2Numbers = part2Numbers
+	// Obter resultado da Parte 2
+	// part2_result := getResultPart2(part2Numbers)
 
 	fmt.Printf("Part 1: %d\n", part1_result)
+	// fmt.Printf("Part 2: %d\n", part2_result)
 }
