@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 	"unicode"
 )
 
@@ -148,7 +149,19 @@ func sumAllValidNumbers(validNumbers []int) int {
 	return sum
 }
 
+func trackTime(name string) func() {
+	startTime := time.Now()
+	fmt.Printf("[%s] Started...\n", name)
+
+	return func() {
+		elapsed := time.Since(startTime)
+		fmt.Printf("[%s] Took %s to run.\n", name, elapsed)
+	}
+}
+
 func main() {
+	defer trackTime("Part 1")()
+
 	lines, err := readLinesFromFile(FILEPATH)
 
 	if err != nil {
