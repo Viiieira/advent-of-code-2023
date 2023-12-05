@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"time"
 	"unicode"
 )
 
@@ -150,22 +149,12 @@ func sumAllValidNumbers(validNumbers []int) int {
 	return sum
 }
 
-func trackTime(name string) func() {
-	startTime := time.Now()
-	fmt.Printf("[%s] Started...\n", name)
-
-	return func() {
-		elapsed := time.Since(startTime)
-		fmt.Printf("[%s] Took %s to run.\n", name, elapsed)
-	}
-}
-
 // ---- Part 2 Functions ----
-func displayGearsPositions(gearsCoordinates []GearsCordinates) {
-	for _, gear := range gearsCoordinates {
-		fmt.Printf("A gear was found at [%d][%d]!\n", gear.X, gear.Y)
-	}
-}
+// func displayGearsPositions(gearsCoordinates []GearsCordinates) {
+// 	for _, gear := range gearsCoordinates {
+// 		fmt.Printf("A gear was found at [%d][%d]!\n", gear.X, gear.Y)
+// 	}
+// }
 
 func getAllGearsPositions(lines []string) (gearsPositions []GearsCordinates) {
 	for i, line := range lines {
@@ -179,16 +168,23 @@ func getAllGearsPositions(lines []string) (gearsPositions []GearsCordinates) {
 	return gearsPositions
 }
 
-func getNumbersAdjacentToGears(lines []string,
-	gearsPositions []GearsCordinates, maxRows int, maxCols int) (part2Numbers []int) {
+func part2(lines []string,
+	gearsPositions []GearsCordinates, maxRows int, maxCols int) (part2 int) {
 
-	positionsToCheck := []GearsCordinates{}
+	digitsNearGears := make([]map[string]GearsCordinates, 3)
+
+	// Inicializar cada mapa
+	for i := 0; i < len(digitsNearGears); i++ {
+		digitsNearGears[i] = make(map[string]GearsCordinates)
+	}
+
+	aux := 0
 	for i, line := range lines {
 		for j, char := range line {
 			// Gear foi detetada
 			if string(char) == "*" {
 				// Guardar em array todas as posições adjacentes ao * encontrado
-				positionsToCheck = []GearsCordinates{
+				positionsToCheck := []GearsCordinates{
 					{i, j - 1},     // Esquerda
 					{i, j + 1},     // Direita
 					{i + 1, j},     // Baixo
@@ -200,32 +196,42 @@ func getNumbersAdjacentToGears(lines []string,
 				}
 
 				// Ver se as posições do array correspondem a um dígito
-				aux := 0
 				for _, pos := range positionsToCheck {
 					// Ver se a posição está dentro das dimensões da matriz
 					if pos.X >= 0 && pos.Y >= 0 && pos.X <= maxRows-1 && pos.Y <= maxCols-1 {
 						// É um número?
 						if unicode.IsDigit(int32(lines[pos.X][pos.Y])) {
-							aux++
-							if aux == 1 {
-								fmt.Print("| ")
-							}
 							key, _ := strconv.Atoi(string(lines[pos.X][pos.Y]))
-							fmt.Printf("%d --> (%d,%d) \n",
-								key, pos.X, pos.Y)
+							digitsNearGears[aux][strconv.Itoa(key)] = GearsCordinates{pos.X, pos.Y}
 						}
 					}
 				}
 				fmt.Println()
+				aux++
 			}
 		}
 	}
-	return part2Numbers
+
+	for _, m := range digitsNearGears {
+		if len(m) > 1 {
+			for _, value := range m {
+				// Procurar resto dos dígitos para formar o número completo
+				for _, line := range lines {
+					for i := value.Y; i >= 0; i-- {
+						char := rune(line[i])
+						if unicode.IsDigit(char) {
+							// TODO: Find motivation to complete this one
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return
 }
 
 func main() {
-	defer trackTime("Day 3")()
-
 	lines, err := readLinesFromFile(FILEPATH)
 
 	if err != nil {
@@ -240,12 +246,10 @@ func main() {
 
 	// Encontrar as posições das gears
 	gearsPositions := getAllGearsPositions(lines)
-	// displayGearsPositions(gearsPositions)
-	// Encontrar números adjacentes às gears
-	part2Numbers := getNumbersAdjacentToGears(lines, gearsPositions, numRows, numCols)
+	// Obter resultado da Parte 2
+	part2Numbers := part2(lines, gearsPositions, numRows, numCols)
 	part2Numbers = part2Numbers
 	// Obter resultado da Parte 2
-	// part2_result := getResultPart2(part2Numbers)
 
 	fmt.Printf("Part 1: %d\n", part1_result)
 	// fmt.Printf("Part 2: %d\n", part2_result)
