@@ -52,23 +52,6 @@ func getMatrixSize(matrix []string) (numRows int, numCols int) {
 	return numRows, numCols
 }
 
-// func printMatrix(matrix []string) {
-// 	for i := range matrix {
-// 		for j := range matrix[i] {
-// 			fmt.Printf("[%c]", matrix[i][j])
-// 		}
-// 		fmt.Println()
-// 	}
-// }
-
-// func printCoordinatesMap(coordsMap map[string]Coordinates) {
-// 	for key, value := range coordsMap {
-// 		for _, entry := range value.Entries {
-// 			fmt.Printf("%s --> (%d,%d) to (%d,%d)\n", key, entry.StartX, entry.StartY, entry.EndX, entry.EndY)
-// 		}
-// 	}
-// }
-
 func findNumbers(s []string) (validNumbers map[string]Coordinates) {
 	validNumbers = make(map[string]Coordinates)
 
@@ -149,13 +132,6 @@ func sumAllValidNumbers(validNumbers []int) int {
 	return sum
 }
 
-// ---- Part 2 Functions ----
-// func displayGearsPositions(gearsCoordinates []GearsCordinates) {
-// 	for _, gear := range gearsCoordinates {
-// 		fmt.Printf("A gear was found at [%d][%d]!\n", gear.X, gear.Y)
-// 	}
-// }
-
 func getAllGearsPositions(lines []string) (gearsPositions []GearsCordinates) {
 	for i, line := range lines {
 		for j, char := range line {
@@ -168,22 +144,16 @@ func getAllGearsPositions(lines []string) (gearsPositions []GearsCordinates) {
 	return gearsPositions
 }
 
-func part2(lines []string,
-	gearsPositions []GearsCordinates, maxRows int, maxCols int) (part2 int) {
+func part2(lines []string, gearsPositions []GearsCordinates, maxRows int, maxCols int) (part2 int) {
+	digitsNearGears, aux := make([]map[string]GearsCordinates, 3), 0
 
-	digitsNearGears := make([]map[string]GearsCordinates, 3)
-
-	// Inicializar cada mapa
 	for i := 0; i < len(digitsNearGears); i++ {
 		digitsNearGears[i] = make(map[string]GearsCordinates)
 	}
 
-	aux := 0
 	for i, line := range lines {
 		for j, char := range line {
-			// Gear foi detetada
 			if string(char) == "*" {
-				// Guardar em array todas as posições adjacentes ao * encontrado
 				positionsToCheck := []GearsCordinates{
 					{i, j - 1},     // Esquerda
 					{i, j + 1},     // Direita
@@ -195,36 +165,63 @@ func part2(lines []string,
 					{i - 1, j + 1}, // Cima + Direita
 				}
 
-				// Ver se as posições do array correspondem a um dígito
 				for _, pos := range positionsToCheck {
-					// Ver se a posição está dentro das dimensões da matriz
 					if pos.X >= 0 && pos.Y >= 0 && pos.X <= maxRows-1 && pos.Y <= maxCols-1 {
-						// É um número?
 						if unicode.IsDigit(int32(lines[pos.X][pos.Y])) {
 							key, _ := strconv.Atoi(string(lines[pos.X][pos.Y]))
 							digitsNearGears[aux][strconv.Itoa(key)] = GearsCordinates{pos.X, pos.Y}
 						}
 					}
 				}
-				fmt.Println()
 				aux++
 			}
 		}
 	}
 
 	for _, m := range digitsNearGears {
-		if len(m) > 1 {
-			for _, value := range m {
-				// Procurar resto dos dígitos para formar o número completo
-				for _, line := range lines {
-					for i := value.Y; i >= 0; i-- {
-						char := rune(line[i])
-						if unicode.IsDigit(char) {
-							// TODO: Find motivation to complete this one
+		// Apenas contar estrelas com pelo menos 2 números adjacentes
+		if len(m) >= 2 {
+			// Ver todos os dígitos
+			twoNumbers := []int{}
+			for _, coords := range m {
+				completeNumberStr := ""
+				for i := range lines {
+					// Linha encontrada para encontrar o resto do número
+					if i == coords.X {
+						for j := coords.Y; j >= 0; j-- {
+							char := rune(lines[i][j])
+							if unicode.IsDigit(char) {
+								completeNumberStr = string(lines[i][j]) + completeNumberStr
+							} else {
+								break
+							}
 						}
+						for j := coords.Y + 1; j <= len(lines[i])-1; j++ {
+							char := rune(lines[i][j])
+							if unicode.IsDigit(char) {
+								completeNumberStr += string(lines[i][j])
+							} else {
+								break
+							}
+						}
+						completeNumber, _ := strconv.Atoi(completeNumberStr)
+
+						// Check if the number doesnt already exist
+						exists := false
+						for _, num := range twoNumbers {
+							if num == completeNumber {
+								exists = true
+								break
+							}
+						}
+						if !exists {
+							twoNumbers = append(twoNumbers, completeNumber)
+						}
+
 					}
 				}
 			}
+			part2 += (twoNumbers[0] * twoNumbers[1])
 		}
 	}
 
@@ -247,10 +244,8 @@ func main() {
 	// Encontrar as posições das gears
 	gearsPositions := getAllGearsPositions(lines)
 	// Obter resultado da Parte 2
-	part2Numbers := part2(lines, gearsPositions, numRows, numCols)
-	part2Numbers = part2Numbers
-	// Obter resultado da Parte 2
+	part2_result := part2(lines, gearsPositions, numRows, numCols)
 
 	fmt.Printf("Part 1: %d\n", part1_result)
-	// fmt.Printf("Part 2: %d\n", part2_result)
+	fmt.Printf("Part 2: %d\n", part2_result)
 }
